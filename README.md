@@ -3,7 +3,10 @@ Record your desktop. Select the area you want to record and then it will create 
 
 ## Setup
 Edit the `wrec` Python file and set your path
-chmod +x wrec
+
+`chmod +x wrec`
+
+`sudo ln -s {path_to_wRec}/wrec /usr/bin/wrec`
 
 ## Requirements
   Ubuntu
