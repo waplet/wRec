@@ -6,9 +6,11 @@ Edit the `wrec` Python file and set your path
 chmod +x wrec
 
 ## Requirements
-Ubuntu
-X Server
-ffmpeg
+  Ubuntu
+  
+  X Server
+  
+  ffmpeg
 
 ## Run
 Add `wrec` to executable path and run it.
