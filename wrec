@@ -1,0 +1,119 @@
+#!/usr/bin/python
+import signal
+import os
+import gi
+import subprocess
+import platform
+import threading
+import datetime
+from numpy import record
+gi.require_version('Gtk', '3.0')
+gi.require_version('AppIndicator3', '0.1')
+from gi.repository import Gtk as gtk
+from gi.repository import AppIndicator3 as appindicator
+
+APPINDICATOR_ID = 'wRec'
+VIDEO_PATH = '/home/maris/Videos/'
+video_thread = False;
+video_popen = False;
+
+def main():
+    
+    # Init recording
+    start()
+
+    # Init indicator
+    init_indicator()
+
+def build_menu():
+    menu = gtk.Menu();
+    item_quit = gtk.MenuItem('Quit')
+    item_quit.connect('activate', quit)
+    menu.append(item_quit)
+
+    item_stop = gtk.MenuItem('Stop')
+    item_stop.connect('activate', stop)
+    menu.append(item_stop);
+
+    item_record = gtk.MenuItem('Record')
+    item_record.connect('activate', start)
+    menu.append(item_record)
+
+    menu.show_all()
+    return menu
+
+def init_indicator():
+    indicator = appindicator.Indicator.new(APPINDICATOR_ID, os.path.abspath('record.svg'), appindicator.IndicatorCategory.SYSTEM_SERVICES)
+    indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
+    indicator.set_menu(build_menu())
+    gtk.main()
+
+def quit(source):
+    stop()
+    gtk.main_quit()
+
+
+def notify(status, title="", message=""):
+    if status == "error":
+        subprocess.call(['notify-send', '-a', APPINDICATOR_ID, '-u', 'critical', '-c', "im.error", '-t', str(500) ,title, message])
+    else:
+        subprocess.call(['notify-send', '-a', APPINDICATOR_ID, '-u', 'low', '-c', "transfer.complete", '-t', str(500) ,title, message])
+
+def get_coordinates():
+    coordinates = str(subprocess.Popen("./mouse", stdout=subprocess.PIPE).stdout.read())
+    xywh_split = coordinates.split(' ');
+
+    if len(xywh_split) == 1:
+        return "-1", "0"
+
+    xy = coordinates.split(' ')[0];
+    wh = coordinates.split(' ')[1];
+
+    return xy, wh
+
+def start(source=False):
+    global video_thread
+    stop()
+
+    # Begin video thread
+    video_thread = threading.Thread(target=record)
+    video_thread.start()
+
+def record():
+    global video_popen
+
+    # Get mouse coordinates
+    xy, wh = get_coordinates()
+    if xy == "-1" or xy == "0,0":
+        notify('error', "Aborted", "Exiting...")
+        return;
+
+    now = datetime.datetime.now()
+    filename = "%s%s.mp4" % (VIDEO_PATH, now.strftime('%Y_%m_%d_%H_%M_%S'));
+#    filename = "%s%s.mp4" % (VIDEO_PATH, "test")
+
+    video_popen = subprocess.Popen([
+        'ffmpeg', 
+        '-f', 'alsa',
+        '-i', 'default',
+        '-f', 'x11grab',
+        '-s', wh,
+        '-r', str(30),
+        '-i', ':0.0+%s' % xy,
+        '-qscale', str(0),
+        filename
+    ])
+    notify("success", 'Recording', 'Started to record video - %s!' % filename)
+    print "Worked"
+
+def stop(source=False):
+    global video_popen
+    if video_popen:
+        video_popen.terminate()
+        video_popen = False
+        notify("success", 'Finished', 'Video recording done!')
+
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    main()
