@@ -7,7 +7,9 @@ chmod +x wrec
 
 ## Requirements
   Ubuntu
+  
   X Server
+  
   ffmpeg
 
 ## Run
