@@ -13,6 +13,7 @@ from gi.repository import AppIndicator3 as appindicator
 
 APPINDICATOR_ID = 'wRec'
 VIDEO_PATH = '/home/maris/Videos/'
+APP_PATH = os.path.dirname(os.path.realpath(__file__))
 video_thread = False;
 video_popen = False;
 
@@ -41,7 +42,7 @@ def build_menu():
     return menu
 
 def init_indicator():
-    indicator = appindicator.Indicator.new(APPINDICATOR_ID, os.path.dirname(os.path.realpath(__file__)) + '/record.svg', appindicator.IndicatorCategory.SYSTEM_SERVICES)
+    indicator = appindicator.Indicator.new(APPINDICATOR_ID, APP_PATH + '/record.svg', appindicator.IndicatorCategory.SYSTEM_SERVICES)
     indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
     indicator.set_menu(build_menu())
     gtk.main()
@@ -58,7 +59,7 @@ def notify(status, title="", message=""):
         subprocess.call(['notify-send', '-a', APPINDICATOR_ID, '-u', 'low', '-c', "transfer.complete", '-t', str(500) ,title, message])
 
 def get_coordinates():
-    coordinates = str(subprocess.Popen("./mouse", stdout=subprocess.PIPE).stdout.read())
+    coordinates = str(subprocess.Popen(APP_PATH + "/mouse", stdout=subprocess.PIPE).stdout.read())
     xywh_split = coordinates.split(' ');
 
     if len(xywh_split) == 1:
@@ -99,6 +100,7 @@ def record():
         '-r', str(30),
         '-i', ':0.0+%s' % xy,
         '-qscale', str(0),
+        '-strict', '-2',
         filename
     ])
     notify("success", 'Recording', 'Started to record video - %s!' % filename)
