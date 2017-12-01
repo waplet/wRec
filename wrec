@@ -6,7 +6,6 @@ import subprocess
 import platform
 import threading
 import datetime
-from numpy import record
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk as gtk
@@ -18,10 +17,9 @@ video_thread = False;
 video_popen = False;
 
 def main():
-    
+
     # Init recording
     start()
-
     # Init indicator
     init_indicator()
 
@@ -43,7 +41,7 @@ def build_menu():
     return menu
 
 def init_indicator():
-    indicator = appindicator.Indicator.new(APPINDICATOR_ID, os.path.abspath('record.svg'), appindicator.IndicatorCategory.SYSTEM_SERVICES)
+    indicator = appindicator.Indicator.new(APPINDICATOR_ID, os.path.dirname(os.path.realpath(__file__)) + '/record.svg', appindicator.IndicatorCategory.SYSTEM_SERVICES)
     indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
     indicator.set_menu(build_menu())
     gtk.main()
